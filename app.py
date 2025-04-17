@@ -3,14 +3,25 @@ from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from db import get_all_data
 from flask import Flask, request, jsonify
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
+import os
 load_dotenv()
 
 
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
+
+USERNAME = os.getenv("USERNAME")
+PASSWORD = os.getenv("PASSWORD")
+
+users = {
+    USERNAME: generate_password_hash(PASSWORD, method='pbkdf2:sha256')
+}
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -42,11 +53,18 @@ def print_similarity_result(similaritiesResult, existing_posts_texts, new_post):
     else:
         logging.debug(f"\n'{new_post}' is a new post.")
 
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and check_password_hash(users[username], password):
+        return username
+    return None
+
 @app.route('/health-check', methods=['GET'])
 def health_check():
     return jsonify({"status": "ok"}), 200
 
 @app.route('/is-exist-in-db', methods=['POST'])
+@auth.login_required
 def is_exist_in_db():
     try:
         data = request.get_json()

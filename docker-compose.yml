@@ -8,6 +8,8 @@ services:
     environment:
       MONGODB_URI: ${MONGODB_URI}
       MONGODB_DATABASE: ${MONGODB_DATABASE}
+      USERNAME: username
+      PASSWORD: mypassword123
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5060/health-check"]
       interval: 30s
