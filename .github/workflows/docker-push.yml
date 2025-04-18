@@ -1,29 +1,12 @@
-name: Docker Image CI
+# Push workflow - Only runs manually
+name: Docker Image Push
 
 on:
   workflow_dispatch:
-    inputs:
-      confirm_push:
-        description: 'Push to Docker Hub?'
-        required: true
-        type: boolean
-        default: false
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    # No inputs needed, running this workflow at all is the approval
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build the Docker image
-        run: docker build . -t ${{ secrets.DOCKER_USERNAME }}/scrapper-guard:latest
-
-  deploy:
-    needs: build
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.confirm_push == 'true' || github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+  push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
