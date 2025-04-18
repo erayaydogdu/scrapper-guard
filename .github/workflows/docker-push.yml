@@ -1,6 +1,13 @@
 name: Docker Image CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      confirm_push:
+        description: 'Push to Docker Hub?'
+        required: true
+        type: boolean
+        default: false
   push:
     branches: [ "main" ]
   pull_request:
@@ -8,6 +15,15 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: docker build . -t ${{ secrets.DOCKER_USERNAME }}/scrapper-guard:latest
+
+  deploy:
+    needs: build
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.confirm_push == 'true' || github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
